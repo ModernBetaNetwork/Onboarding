@@ -1,0 +1,13 @@
+name: Onboarding
+version: '${version}'
+main: org.modernbeta.onboarding.Onboarding
+api-version: '1.20'
+depend:
+  - SuperVanish
+commands:
+  accept:
+    description: Accepts the rules for an onboarding player
+    usage: /accept
+    aliases:
+      - agree
+      - yes
