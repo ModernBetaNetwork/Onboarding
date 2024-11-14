@@ -24,6 +24,7 @@ import java.util.List;
 public final class Onboarding extends JavaPlugin implements Listener {
 
     public static List<Player> needToAccept = new ArrayList<>();
+    public static List<Player> needToAcceptOffline = new ArrayList<>();
     static PotionEffect blindness = new PotionEffect(PotionEffectType.BLINDNESS, PotionEffect.INFINITE_DURATION, 1, true, false, false);
 
     @Override
@@ -45,13 +46,18 @@ public final class Onboarding extends JavaPlugin implements Listener {
     public void onPlayerFirstJoin(PlayerJoinEvent event) {
         // get player and check if this is their first time joining
         Player player = event.getPlayer();
+
         if (!player.hasPlayedBefore() || isOnboarding(player))
             startOnboardingProcess(player);
     }
 
     @EventHandler
     public void onPlayerLeave(PlayerQuitEvent event) {
-        needToAccept.remove(event.getPlayer());
+        Player player = event.getPlayer();
+        if (!needToAccept.contains(player)) return;
+
+        needToAccept.remove(player);
+        needToAcceptOffline.add(player);
     }
 
 
@@ -62,11 +68,12 @@ public final class Onboarding extends JavaPlugin implements Listener {
     }
 
     boolean isOnboarding(Player player) {
-        return !player.hasPermission("onboarding.ignore") && VanishAPI.isInvisible(player);
+        return !player.hasPermission("onboarding.ignore") && (VanishAPI.isInvisible(player) || player.hasPotionEffect(PotionEffectType.BLINDNESS) || needToAccept.contains(player) || needToAcceptOffline.contains(player));
     }
 
     public static void startOnboardingProcess(Player player) {
         needToAccept.add(player);
+        needToAcceptOffline.remove(player);
         VanishAPI.hidePlayer(player, player.getName(), true);
         player.setGameMode(GameMode.ADVENTURE);
         player.addPotionEffect(blindness);
@@ -76,6 +83,7 @@ public final class Onboarding extends JavaPlugin implements Listener {
 
     public static void acceptOnboardingProcess(Player player) {
         needToAccept.remove(player);
+        needToAcceptOffline.remove(player);
         VanishAPI.showPlayer(player);
         player.removePotionEffect(PotionEffectType.BLINDNESS);
         player.setGameMode(GameMode.SURVIVAL);
