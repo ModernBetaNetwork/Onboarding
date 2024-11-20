@@ -1,14 +1,16 @@
 package org.modernbeta.onboarding;
 
 import de.myzelyam.api.vanish.VanishAPI;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.TranslatableComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -17,6 +19,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.modernbeta.onboarding.commands.AcceptCommand;
+import org.modernbeta.onboarding.commands.RulesCommand;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +42,8 @@ public final class Onboarding extends JavaPlugin implements Listener {
         Bukkit.getPluginManager().registerEvents(this, this);
         PluginCommand acceptCommand = getCommand("accept");
         if (acceptCommand != null) acceptCommand.setExecutor(new AcceptCommand());
+        PluginCommand rulesCommand = this.getCommand("rules");
+        if (rulesCommand != null) rulesCommand.setExecutor(new RulesCommand());
 
         spamRules();
     }
@@ -61,6 +66,12 @@ public final class Onboarding extends JavaPlugin implements Listener {
         needToAcceptOffline.add(player.getUniqueId());
     }
 
+    @EventHandler
+    public void onPlayerMessage(AsyncPlayerChatEvent event) {
+        if (isOnboarding(event.getPlayer())) {
+            event.setCancelled(true);
+        }
+    }
 
     @EventHandler
     public void onPlayerMovement(PlayerMoveEvent event) {
@@ -75,11 +86,11 @@ public final class Onboarding extends JavaPlugin implements Listener {
     public static void startOnboardingProcess(Player player) {
         needToAccept.add(player);
         needToAcceptOffline.remove(player.getUniqueId());
-        VanishAPI.hidePlayer(player, player.getName(), true);
+        VanishAPI.getPlugin().getVisibilityChanger().hidePlayer(player, player.getName(), true);
         player.setGameMode(GameMode.ADVENTURE);
         player.addPotionEffect(blindness);
-        player.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "ACCEPT RULES IN CHAT", ChatColor.RED + "Then you can continue.", 10, 160, 10);
-        sendRulesAcceptMessage(player);
+        player.sendTitle(new TranslatableComponent("modernbeta.onboarding.take_action.title").toString(), new TranslatableComponent("modernbeta.onboarding.take_action.subtitle").toString(), 10, 160, 10);
+        Rules.sendRules(player);
     }
 
     public static void acceptOnboardingProcess(Player player) {
@@ -88,26 +99,24 @@ public final class Onboarding extends JavaPlugin implements Listener {
         VanishAPI.showPlayer(player);
         player.removePotionEffect(PotionEffectType.BLINDNESS);
         player.setGameMode(GameMode.SURVIVAL);
-        player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "Have fun!", ChatColor.GREEN + "All your actions are logged.", 10, 80, 10);
-        player.sendMessage("\n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n" +
-                ChatColor.GREEN + "" + ChatColor.BOLD + "Thank you for accepting our Rules!\n" +
-                ChatColor.GREEN + "Welcome to 2011, enjoy Modern Beta!\n ");
-        for (Player otherPlayer : Bukkit.getOnlinePlayers()) {
-            otherPlayer.sendMessage(ChatColor.LIGHT_PURPLE + "Welcome " + player.getName() + " to the server!");
-        }
-    }
+        TranslatableComponent title1Component = new TranslatableComponent("modernbeta.onboarding.success.title");
+        TranslatableComponent title2Component = new TranslatableComponent("modernbeta.onboarding.success.subtitle");
 
-    static void sendRulesAcceptMessage(Player player) {
-        player.sendMessage("\n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n");
-        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "✖ NO " + ChatColor.RESET + "hacking or xraying");
-        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "✖ NO " + ChatColor.RESET + "destroying other's homes/things (griefing)");
-        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "✖ NO " + ChatColor.RESET + "building above other on-land builds w/o permission.");
-        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "✖ NO " + ChatColor.RESET + "stealing from chests that aren't marked as public.");
-        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "✖ NO " + ChatColor.RESET + "languages besides english in global chats");
-        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "✖ NO " + ChatColor.RESET + "duplication exploits (except sand/gravel using pistons)");
-        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "✖ NO " + ChatColor.RESET + "political or (real)religious conversations or builds.");
-        player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "✔ DO " + ChatColor.RESET + "keep real life at the door and enjoy block game ❤");
-        player.sendMessage("\n" + ChatColor.RED + "Enter " + ChatColor.BOLD + "/accept" + ChatColor.RED + " to agree to these rules.");
+        String title = title1Component.toLegacyText();
+        String subtitle = title2Component.toLegacyText();
+
+        player.sendTitle(title, subtitle, 10, 80, 10);
+
+        player.sendMessage("\n \n \n \n \n \n \n \n \n \n \n");
+        player.spigot().sendMessage(new TranslatableComponent("modernbeta.onboarding.success.chat"));
+
+        TranslatableComponent welcomeMessage = new TranslatableComponent("modernbeta.welcome_message");
+        welcomeMessage.addWith(player.getName());
+        welcomeMessage.setColor(ChatColor.LIGHT_PURPLE);
+
+        for (Player otherPlayer : Bukkit.getOnlinePlayers()) {
+            otherPlayer.spigot().sendMessage(welcomeMessage);
+        }
     }
 
     private void spamRules() {
@@ -116,7 +125,8 @@ public final class Onboarding extends JavaPlugin implements Listener {
             public void run() {
                 if (needToAccept.isEmpty()) return;
                 for (Player player : needToAccept) {
-                    sendRulesAcceptMessage(player);
+                    player.sendMessage("\n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n");
+                    Rules.sendRules(player);
                 }
             }
         }.runTaskTimer(this, 0, 10); // 0 delay, 20 ticks (1 second) period
