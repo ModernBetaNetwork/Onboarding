@@ -2,6 +2,7 @@ name: Onboarding
 version: '${version}'
 main: org.modernbeta.onboarding.Onboarding
 api-version: '1.20'
+folia-supported: true
 depend:
   - SuperVanish
 commands:
