@@ -1,16 +1,14 @@
 package org.modernbeta.onboarding;
 
 import de.myzelyam.api.vanish.VanishAPI;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.TranslatableComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -19,7 +17,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.modernbeta.onboarding.commands.AcceptCommand;
-import org.modernbeta.onboarding.commands.RulesCommand;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -53,8 +50,6 @@ public final class Onboarding extends JavaPlugin implements Listener {
         Bukkit.getPluginManager().registerEvents(this, this);
         PluginCommand acceptCommand = getCommand("accept");
         if (acceptCommand != null) acceptCommand.setExecutor(new AcceptCommand());
-        PluginCommand rulesCommand = this.getCommand("rules");
-        if (rulesCommand != null) rulesCommand.setExecutor(new RulesCommand());
 
         setupDatabase();
         spamRules();
@@ -159,13 +154,6 @@ public final class Onboarding extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onPlayerMessage(AsyncPlayerChatEvent event) {
-        if (isOnboarding(event.getPlayer())) {
-            event.setCancelled(true);
-        }
-    }
-
-    @EventHandler
     public void onPlayerMovement(PlayerMoveEvent event) {
         Player player = event.getPlayer();
         if (isOnboarding(player)) {
@@ -183,8 +171,8 @@ public final class Onboarding extends JavaPlugin implements Listener {
         VanishAPI.getPlugin().getVisibilityChanger().hidePlayer(player, player.getName(), true);
         player.setGameMode(GameMode.ADVENTURE);
         player.addPotionEffect(blindness);
-        player.sendTitle(new TranslatableComponent("modernbeta.onboarding.take_action.title").toString(), new TranslatableComponent("modernbeta.onboarding.take_action.subtitle").toString(), 10, 160, 10);
-        Rules.sendRules(player);
+        player.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "ACCEPT RULES IN CHAT", ChatColor.RED + "Then you can continue.", 10, 160, 10);
+        sendRulesAcceptMessage(player);
     }
 
     public void acceptOnboardingProcess(Player player) {
@@ -230,8 +218,7 @@ public final class Onboarding extends JavaPlugin implements Listener {
             public void run() {
                 if (needToAccept.isEmpty()) return;
                 for (Player player : needToAccept) {
-                    player.sendMessage("\n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n");
-                    Rules.sendRules(player);
+                    sendRulesAcceptMessage(player);
                 }
             }
         }.runTaskTimer(this, 0, 20); // 0 delay, 20 ticks (1 second) period
