@@ -26,7 +26,6 @@ repositories {
 dependencies {
     compileOnly "org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT"
     compileOnly 'com.mojang:brigadier:1.0.18'
-    implementation files('../DevResources/MinecraftPlugins/Beta2ReleaseFixer-1.0-SNAPSHOT.jar')
     implementation 'com.github.LeonMangler:SuperVanish:6.2.19'
 }
 
