@@ -58,7 +58,10 @@ public final class Onboarding extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (isOnboarding(player))
+                addPlayerToDatabase(player.getUniqueId());
+        }
         closeDatabase();
     }
 
