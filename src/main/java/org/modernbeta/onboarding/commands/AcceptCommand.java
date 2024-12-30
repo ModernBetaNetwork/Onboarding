@@ -22,7 +22,7 @@ public class AcceptCommand implements CommandExecutor
             return true;
         }
 
-        Onboarding.acceptOnboardingProcess(senderPlayer);
+        Onboarding.instance.acceptOnboardingProcess(senderPlayer);
         return true;
     }
 
