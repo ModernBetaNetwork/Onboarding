@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -155,8 +156,14 @@ public final class Onboarding extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPlayerMovement(PlayerMoveEvent event) {
-        Player player = event.getPlayer();
-        if (isOnboarding(player)) {
+        if (isOnboarding(event.getPlayer())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerMessage(AsyncPlayerChatEvent event) {
+        if (isOnboarding(event.getPlayer())) {
             event.setCancelled(true);
         }
     }
