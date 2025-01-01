@@ -143,7 +143,7 @@ public final class Onboarding extends JavaPlugin implements Listener {
 
         if (!player.hasPlayedBefore() || isOnboarding(player)) {
             startOnboardingProcess(player);
-        } else {
+        } else if (!player.hasPermission("sv.use")) {
             removeOnboardingEffects(player);
         }
     }
