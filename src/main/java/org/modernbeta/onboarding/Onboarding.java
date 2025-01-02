@@ -32,7 +32,7 @@ public final class Onboarding extends JavaPlugin implements Listener {
 
     public static Onboarding instance;
 
-    public static List<Player> needToAccept = new ArrayList<>();
+    public static List<UUID> needToAccept = new ArrayList<>();
     static PotionEffect blindness = new PotionEffect(PotionEffectType.BLINDNESS, PotionEffect.INFINITE_DURATION, 1, true, false, false);
 
     private static Connection connection;
@@ -58,10 +58,6 @@ public final class Onboarding extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (isOnboarding(player))
-                addPlayerToDatabase(player.getUniqueId());
-        }
         closeDatabase();
     }
 
@@ -140,44 +136,39 @@ public final class Onboarding extends JavaPlugin implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerFirstJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+        UUID playerUUID = player.getUniqueId();
 
-        if (!player.hasPlayedBefore() || isOnboarding(player)) {
+        if (!player.hasPlayedBefore() || needToAccept.contains(playerUUID) || isPlayerInDatabase(playerUUID)) {
             startOnboardingProcess(player);
         } else if (!player.hasPermission("sv.use")) {
-            removeOnboardingEffects(player);
+            stopOnboarding(player);
         }
     }
 
     @EventHandler
     public void onPlayerLeave(PlayerQuitEvent event) {
-        Player player = event.getPlayer();
-        if (needToAccept.contains(player)) {
-            needToAccept.remove(player);
-            addPlayerToDatabase(player.getUniqueId());
-        }
+        UUID playerUUID = event.getPlayer().getUniqueId();
+        needToAccept.remove(playerUUID);
     }
 
     @EventHandler
     public void onPlayerMovement(PlayerMoveEvent event) {
-        if (isOnboarding(event.getPlayer())) {
+        if (needToAccept.contains(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onPlayerMessage(AsyncPlayerChatEvent event) {
-        if (isOnboarding(event.getPlayer())) {
+        if (needToAccept.contains(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
         }
     }
 
-    boolean isOnboarding(Player player) {
-        return !player.hasPermission("onboarding.ignore") && (needToAccept.contains(player) || isPlayerInDatabase(player.getUniqueId()));
-    }
-
     public void startOnboardingProcess(Player player) {
-        needToAccept.add(player);
-        removePlayerFromDatabase(player.getUniqueId());
+        UUID playerUUID = player.getUniqueId();
+        needToAccept.add(playerUUID);
+        addPlayerToDatabase(playerUUID);
         VanishAPI.getPlugin().getVisibilityChanger().hidePlayer(player, player.getName(), true);
         player.setGameMode(GameMode.ADVENTURE);
         player.addPotionEffect(blindness);
@@ -186,8 +177,7 @@ public final class Onboarding extends JavaPlugin implements Listener {
     }
 
     public void acceptOnboardingProcess(Player player) {
-        needToAccept.remove(player);
-        removeOnboardingEffects(player);
+        stopOnboarding(player);
         player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "Have fun!", ChatColor.GREEN + "All your actions are logged.", 10, 80, 10);
         player.sendMessage("\n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n" +
                 ChatColor.GREEN + "" + ChatColor.BOLD + "Thank you for accepting our Rules!\n" +
@@ -197,8 +187,10 @@ public final class Onboarding extends JavaPlugin implements Listener {
         }
     }
 
-    private void removeOnboardingEffects(Player player) {
-        removePlayerFromDatabase(player.getUniqueId());
+    private void stopOnboarding(Player player) {
+        UUID playerUUID = player.getUniqueId();
+        needToAccept.remove(playerUUID);
+        removePlayerFromDatabase(playerUUID);
         if (VanishAPI.isInvisible(player))
             VanishAPI.showPlayer(player);
         if (player.hasPotionEffect(PotionEffectType.BLINDNESS))
@@ -227,8 +219,11 @@ public final class Onboarding extends JavaPlugin implements Listener {
             @Override
             public void run() {
                 if (needToAccept.isEmpty()) return;
-                for (Player player : needToAccept) {
-                    sendRulesAcceptMessage(player);
+                for (UUID playerUUID : needToAccept) {
+                    Player player = Bukkit.getPlayer(playerUUID);
+                    if (player != null) {
+                        sendRulesAcceptMessage(player);
+                    }
                 }
             }
         }.runTaskTimer(this, 0, 20); // 0 delay, 20 ticks (1 second) period

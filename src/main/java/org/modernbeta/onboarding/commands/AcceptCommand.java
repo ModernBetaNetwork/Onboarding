@@ -17,7 +17,7 @@ public class AcceptCommand implements CommandExecutor
             return false;
         }
 
-        if (!Onboarding.needToAccept.contains(senderPlayer)) {
+        if (!Onboarding.needToAccept.contains(senderPlayer.getUniqueId())) {
             sender.sendMessage(ChatColor.RED + "You have already accepted the rules, if you need a refresher, read /rules <3");
             return true;
         }
