@@ -8,8 +8,8 @@ version = '1.0'
 repositories {
     mavenCentral()
     maven {
-        name = "spigotmc-repo"
-        url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
+        name = "papermc"
+        url = uri("https://repo.papermc.io/repository/maven-public/")
     }
     maven {
         name = "sonatype"
