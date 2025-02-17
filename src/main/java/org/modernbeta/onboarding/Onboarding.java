@@ -53,6 +53,7 @@ public final class Onboarding extends JavaPlugin implements Listener {
         if (!(ess instanceof Essentials)) {
             this.getLogger().severe("Essentials plugin not found!");
             this.getServer().getPluginManager().disablePlugin(this);
+            return;
         } else
             essentials = (Essentials) ess;
 
