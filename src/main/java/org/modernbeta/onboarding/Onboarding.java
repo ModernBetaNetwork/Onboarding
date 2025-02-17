@@ -1,5 +1,6 @@
 package org.modernbeta.onboarding;
 
+import com.earth2me.essentials.Essentials;
 import de.myzelyam.api.vanish.VanishAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -13,6 +14,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -31,6 +33,7 @@ import java.util.UUID;
 public final class Onboarding extends JavaPlugin implements Listener {
 
     public static Onboarding instance;
+    Essentials essentials;
 
     public static List<UUID> needToAccept = new ArrayList<>();
     static PotionEffect blindness = new PotionEffect(PotionEffectType.BLINDNESS, PotionEffect.INFINITE_DURATION, 1, true, false, false);
@@ -40,6 +43,14 @@ public final class Onboarding extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         instance = this;
+
+        // Require Essentials so we can use it later
+        Plugin ess = this.getServer().getPluginManager().getPlugin("Essentials");
+        if (!(ess instanceof Essentials)) {
+            this.getLogger().severe("Essentials plugin not found!");
+            this.getServer().getPluginManager().disablePlugin(this);
+        } else
+            essentials = (Essentials) ess;
 
         // Plugin startup logic
         if (!Bukkit.getPluginManager().isPluginEnabled("SuperVanish") && !Bukkit.getPluginManager().isPluginEnabled("PremiumVanish")) {
