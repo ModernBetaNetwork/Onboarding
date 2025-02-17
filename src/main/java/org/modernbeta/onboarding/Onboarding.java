@@ -42,6 +42,7 @@ public final class Onboarding extends JavaPlugin implements Listener {
     static PotionEffect blindness = new PotionEffect(PotionEffectType.BLINDNESS, PotionEffect.INFINITE_DURATION, 1, true, false, false);
 
     private static Connection connection;
+    private static List<String> rules;
 
     @Override
     public void onEnable() {
@@ -187,7 +188,11 @@ public final class Onboarding extends JavaPlugin implements Listener {
         player.setGameMode(GameMode.ADVENTURE);
         player.addPotionEffect(blindness);
         player.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "ACCEPT RULES IN CHAT", ChatColor.RED + "Then you can continue.", 10, 160, 10);
-        sendRulesAcceptMessage(player, essentials);
+
+        // Ensure rules are always up-to-date for new players
+        reloadRules(essentials);
+
+        sendRulesAcceptMessage(player);
     }
 
     public void acceptOnboardingProcess(Player player) {
@@ -213,14 +218,10 @@ public final class Onboarding extends JavaPlugin implements Listener {
             player.setGameMode(GameMode.SURVIVAL);
     }
 
-    static void sendRulesAcceptMessage(Player player, Essentials essentials) {
+    static void sendRulesAcceptMessage(Player player) {
         player.sendMessage("\n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n");
-        try {
-            final TextInput ruleText =
-                new TextInput(new CommandSource(player), "rules", true, essentials);
-            ruleText.getLines().forEach(player::sendMessage);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        for(String rule : rules) {
+            player.sendMessage(rule);
         }
         player.sendMessage("\n" + ChatColor.RED + "Enter " + ChatColor.BOLD + "/accept" + ChatColor.RED + " to agree to these rules.");
     }
@@ -233,10 +234,21 @@ public final class Onboarding extends JavaPlugin implements Listener {
                 for (UUID playerUUID : needToAccept) {
                     Player player = Bukkit.getPlayer(playerUUID);
                     if (player != null) {
-                        sendRulesAcceptMessage(player, essentials);
+                        sendRulesAcceptMessage(player);
                     }
                 }
             }
         }.runTaskTimer(this, 0, 20); // 0 delay, 20 ticks (1 second) period
+    }
+
+    private static void reloadRules(Essentials essentials) {
+        Bukkit.getLogger().info("Reloading rules...");
+        try {
+            final TextInput ruleText =
+                new TextInput(new CommandSource(Bukkit.getServer().getConsoleSender()), "rules", true, essentials);
+            rules = ruleText.getLines();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
