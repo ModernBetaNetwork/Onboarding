@@ -49,13 +49,14 @@ public final class Onboarding extends JavaPlugin implements Listener {
         instance = this;
 
         // Require Essentials so we can use it later
-        Plugin ess = this.getServer().getPluginManager().getPlugin("Essentials");
-        if (!(ess instanceof Essentials)) {
+        Plugin essentials =
+            this.getServer().getPluginManager().getPlugin("Essentials");
+        if (!(essentials instanceof Essentials)) {
             this.getLogger().severe("Essentials plugin not found!");
             this.getServer().getPluginManager().disablePlugin(this);
             return;
         } else
-            essentials = (Essentials) ess;
+            this.essentials = (Essentials) essentials;
 
         // Plugin startup logic
         if (!Bukkit.getPluginManager().isPluginEnabled("SuperVanish") && !Bukkit.getPluginManager().isPluginEnabled("PremiumVanish")) {
