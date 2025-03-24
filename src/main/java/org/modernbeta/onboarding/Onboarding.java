@@ -1,5 +1,8 @@
 package org.modernbeta.onboarding;
 
+import com.earth2me.essentials.CommandSource;
+import com.earth2me.essentials.Essentials;
+import com.earth2me.essentials.textreader.TextInput;
 import de.myzelyam.api.vanish.VanishAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -13,12 +16,14 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.modernbeta.onboarding.commands.AcceptCommand;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -31,15 +36,27 @@ import java.util.UUID;
 public final class Onboarding extends JavaPlugin implements Listener {
 
     public static Onboarding instance;
+    Essentials essentials;
 
     public static List<UUID> needToAccept = new ArrayList<>();
     static PotionEffect blindness = new PotionEffect(PotionEffectType.BLINDNESS, PotionEffect.INFINITE_DURATION, 1, true, false, false);
 
     private static Connection connection;
+    private static List<String> rules;
 
     @Override
     public void onEnable() {
         instance = this;
+
+        // Require Essentials so we can use it later
+        Plugin essentials =
+            this.getServer().getPluginManager().getPlugin("Essentials");
+        if (!(essentials instanceof Essentials)) {
+            this.getLogger().severe("Essentials plugin not found!");
+            this.getServer().getPluginManager().disablePlugin(this);
+            return;
+        } else
+            this.essentials = (Essentials) essentials;
 
         // Plugin startup logic
         if (!Bukkit.getPluginManager().isPluginEnabled("SuperVanish") && !Bukkit.getPluginManager().isPluginEnabled("PremiumVanish")) {
@@ -173,6 +190,10 @@ public final class Onboarding extends JavaPlugin implements Listener {
         player.setGameMode(GameMode.ADVENTURE);
         player.addPotionEffect(blindness);
         player.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "ACCEPT RULES IN CHAT", ChatColor.RED + "Then you can continue.", 10, 160, 10);
+
+        // Ensure rules are always up-to-date for new players
+        reloadRules(essentials);
+
         sendRulesAcceptMessage(player);
     }
 
@@ -201,16 +222,9 @@ public final class Onboarding extends JavaPlugin implements Listener {
 
     static void sendRulesAcceptMessage(Player player) {
         player.sendMessage("\n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n");
-        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "✖ NO " + ChatColor.RESET + "hacking or xraying");
-        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "✖ NO " + ChatColor.RESET + "destroying other's homes/things (griefing)");
-        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "✖ NO " + ChatColor.RESET + "building above other on-land builds w/o permission");
-        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "✖ NO " + ChatColor.RESET + "stealing from chests that aren't marked as public");
-        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "✖ NO " + ChatColor.RESET + "languages besides english in global chats");
-        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "✖ NO " + ChatColor.RESET + "abusing exploits (except sand/gravel piston dupes)");
-        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "✖ NO " + ChatColor.RESET + "sexual, racist, sexist or homophobic content");
-        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "✖ NO " + ChatColor.RESET + "war/political/(real)religious conversations/imagery");
-        player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "✔ DO " + ChatColor.RESET + "keep real life at the door and enjoy block game ❤");
-        player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "✔ DO " + ChatColor.RESET + "use common sense and make some friends!");
+        for(String rule : rules) {
+            player.sendMessage(rule);
+        }
         player.sendMessage("\n" + ChatColor.RED + "Enter " + ChatColor.BOLD + "/accept" + ChatColor.RED + " to agree to these rules.");
     }
 
@@ -227,5 +241,16 @@ public final class Onboarding extends JavaPlugin implements Listener {
                 }
             }
         }.runTaskTimer(this, 0, 20); // 0 delay, 20 ticks (1 second) period
+    }
+
+    private static void reloadRules(Essentials essentials) {
+        Bukkit.getLogger().info("Reloading rules...");
+        try {
+            final TextInput ruleText =
+                new TextInput(new CommandSource(Bukkit.getServer().getConsoleSender()), "rules", true, essentials);
+            rules = ruleText.getLines();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

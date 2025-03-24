@@ -8,8 +8,8 @@ version = '1.0'
 repositories {
     mavenCentral()
     maven {
-        name = "spigotmc-repo"
-        url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
+        name = "papermc"
+        url = uri("https://repo.papermc.io/repository/maven-public/")
     }
     maven {
         name = "sonatype"
@@ -21,12 +21,17 @@ repositories {
     maven {
         url "https://libraries.minecraft.net"
     }
+    maven {
+        name = "essentialsxReleases"
+        url = uri("https://repo.essentialsx.net/releases")
+    }
 }
 
 dependencies {
     compileOnly "org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT"
     compileOnly 'com.mojang:brigadier:1.0.18'
     implementation 'com.github.LeonMangler:SuperVanish:6.2.19'
+    implementation("net.essentialsx:EssentialsX:2.19.0")
 }
 
 def targetJavaVersion = 17
