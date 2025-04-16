@@ -13,3 +13,9 @@ commands:
     aliases:
       - agree
       - yes
+  deny:
+    description: Denies the rules and kicks the player from the server
+    usage: /deny
+    aliases:
+      - disagree
+      - no
