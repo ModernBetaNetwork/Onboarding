@@ -54,8 +54,6 @@ public final class Onboarding extends JavaPlugin implements Listener {
 
         // Register events and commands
         Bukkit.getPluginManager().registerEvents(this, this);
-
-        // Register commands
         getCommand("accept").setExecutor(new AcceptCommand());
         getCommand("deny").setExecutor(new DenyCommand());
 
