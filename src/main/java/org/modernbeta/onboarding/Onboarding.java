@@ -22,6 +22,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.modernbeta.onboarding.commands.AcceptCommand;
+import org.modernbeta.onboarding.commands.DenyCommand;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -48,26 +49,13 @@ public final class Onboarding extends JavaPlugin implements Listener {
     public void onEnable() {
         instance = this;
 
-        // Require Essentials so we can use it later
-        Plugin essentials =
-            this.getServer().getPluginManager().getPlugin("Essentials");
-        if (!(essentials instanceof Essentials)) {
-            this.getLogger().severe("Essentials plugin not found!");
-            this.getServer().getPluginManager().disablePlugin(this);
-            return;
-        } else
-            this.essentials = (Essentials) essentials;
+        // Get Essentials plugin instance
+        this.essentials = (Essentials) Bukkit.getPluginManager().getPlugin("Essentials");
 
-        // Plugin startup logic
-        if (!Bukkit.getPluginManager().isPluginEnabled("SuperVanish") && !Bukkit.getPluginManager().isPluginEnabled("PremiumVanish")) {
-            Bukkit.getLogger().warning("Super/Premium Vanish not installed, disabling.");
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
-        }
-
+        // Register events and commands
         Bukkit.getPluginManager().registerEvents(this, this);
-        PluginCommand acceptCommand = getCommand("accept");
-        if (acceptCommand != null) acceptCommand.setExecutor(new AcceptCommand());
+        getCommand("accept").setExecutor(new AcceptCommand());
+        getCommand("deny").setExecutor(new DenyCommand());
 
         setupDatabase();
         spamRules();
@@ -189,7 +177,7 @@ public final class Onboarding extends JavaPlugin implements Listener {
         VanishAPI.getPlugin().getVisibilityChanger().hidePlayer(player, player.getName(), true);
         player.setGameMode(GameMode.ADVENTURE);
         player.addPotionEffect(blindness);
-        player.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "ACCEPT RULES IN CHAT", ChatColor.RED + "Then you can continue.", 10, 160, 10);
+        player.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "SEE CHAT FOR RULES", ChatColor.RED + "Review the rules before playing.", 10, 160, 10);
 
         // Ensure rules are always up-to-date for new players
         reloadRules(essentials);
@@ -225,7 +213,7 @@ public final class Onboarding extends JavaPlugin implements Listener {
         for(String rule : rules) {
             player.sendMessage(rule);
         }
-        player.sendMessage("\n" + ChatColor.RED + "Enter " + ChatColor.BOLD + "/accept" + ChatColor.RED + " to agree to these rules.");
+        player.sendMessage("\n" + ChatColor.RED + "Please " + ChatColor.BOLD + "/accept" + ChatColor.RED + " or " + ChatColor.BOLD + "/deny" + ChatColor.RED + " these rules.");
     }
 
     private void spamRules() {
