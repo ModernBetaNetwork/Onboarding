@@ -177,7 +177,7 @@ public final class Onboarding extends JavaPlugin implements Listener {
         VanishAPI.getPlugin().getVisibilityChanger().hidePlayer(player, player.getName(), true);
         player.setGameMode(GameMode.ADVENTURE);
         player.addPotionEffect(blindness);
-        player.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "ACCEPT OR DENY RULES", ChatColor.RED + "Type /accept to play or /deny to leave.", 10, 160, 10);
+        player.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "SEE CHAT FOR RULES", ChatColor.RED + "Review the rules before playing.", 10, 160, 10);
 
         // Ensure rules are always up-to-date for new players
         reloadRules(essentials);
