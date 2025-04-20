@@ -213,8 +213,7 @@ public final class Onboarding extends JavaPlugin implements Listener {
         for(String rule : rules) {
             player.sendMessage(rule);
         }
-        player.sendMessage("\n" + ChatColor.RED + "Enter " + ChatColor.BOLD + "/accept" + ChatColor.RED + " to agree to these rules.");
-        player.sendMessage(ChatColor.RED + "Or enter " + ChatColor.BOLD + "/deny" + ChatColor.RED + " if you do not agree (this will kick you from the server).");
+        player.sendMessage("\n" + ChatColor.RED + "Please " + ChatColor.BOLD + "/accept" + ChatColor.RED + " or " + ChatColor.BOLD + "/deny" + ChatColor.RED + " these rules.");
     }
 
     private void spamRules() {
